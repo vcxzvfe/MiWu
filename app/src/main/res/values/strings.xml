@@ -9,6 +9,8 @@
 
 
     <string name="tile_description">快捷操作</string>
+    <string name="scene_tile_description">场景快捷面板</string>
+    <string name="scene_tile_label">场景</string>
     <string name="edit_favorite">修改收藏</string>
 
     <string name="toast_user_pwd_not_null">账号密码不能为空</string>
