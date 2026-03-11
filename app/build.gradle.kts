@@ -27,9 +27,18 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        create("release") {
+            storeFile = file("${rootProject.projectDir}/miwu-release.keystore")
+            storePassword = "miwu2026"
+            keyAlias = "miwu-release"
+            keyPassword = "miwu2026"
+        }
+    }
     buildTypes {
         buildTypes {
             release {
+                signingConfig = signingConfigs.getByName("release")
                 isMinifyEnabled = true
                 isShrinkResources = true
                 isDebuggable = false
