@@ -32,12 +32,6 @@ class LocalRepositoryImpl : KoinComponent, LocalRepository {
     private val httpClient = HttpClient()
     private val logger = Logger()
 
-    init {
-        deviceMetadataHandler.onEach {
-            refreshIcon()
-        }.launchIn(scope)
-    }
-
     override val deviceList = CopyOnWriteArrayList<FavoriteDevice>()
     override val iconMap = mutableMapOf<String, ByteArray>()
     override val deviceListFlow: Flow<List<FavoriteDevice>> = dao.observeList()
@@ -48,6 +42,16 @@ class LocalRepositoryImpl : KoinComponent, LocalRepository {
             refreshIcon()
             DeviceTileService.refresh()
         }
+
+    init {
+        deviceMetadataHandler.onEach {
+            refreshIcon()
+        }.launchIn(scope)
+
+        // Eagerly collect deviceListFlow so that deviceList and iconMap are populated
+        // even when no UI is active (e.g., when TileService starts after device reboot)
+        deviceListFlow.launchIn(scope)
+    }
 
     override fun addDevice(miotDevice: MiotDevice) {
         scope.launch {

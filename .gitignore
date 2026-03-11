@@ -19,3 +19,7 @@ kls_database.db
 /kls_database.db
 /buildSrc/build/
 /buildSrc/.kotlin/
+/build-tools/
+/platforms/
+/platform-tools/
+/licenses/

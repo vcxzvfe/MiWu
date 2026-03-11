@@ -3,11 +3,11 @@
 
 <img width="85" height="85" alt="" src="./image/icon.png" style="transform: translateY(42px)">
 
-# 米屋
+# 米屋 (MiWu)
 
-第三方手表版米家应用
+第三方手表版米家应用 / Unofficial Mi Home app for Wear OS
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/sky130/MiWu)](https://github.com/sky130/MiWu/releases)  ![GitHub All Releases](https://img.shields.io/github/downloads/sky130/MiWu/total) ![GitHub stars](https://img.shields.io/github/stars/sky130/MiWu?style=flat) ![GitHub forks](https://img.shields.io/github/forks/sky130/MiWu)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/vcxzvfe/MiWu)](https://github.com/vcxzvfe/MiWu/releases)  ![GitHub All Releases](https://img.shields.io/github/downloads/vcxzvfe/MiWu/total) ![GitHub stars](https://img.shields.io/github/stars/vcxzvfe/MiWu?style=flat) ![GitHub forks](https://img.shields.io/github/forks/vcxzvfe/MiWu)
 
 </div>
 
@@ -22,12 +22,39 @@
 
 <img width="160" alt="" src="./image/1.png"/> <img width="160" alt="" src="./image/2.png"/> <img width="160" alt="" src="./image/3.png"/> <img width="160" alt="" src="./image/4.png"/>
 
-## 目前进度
+## Fork 改进 / Fork Improvements
+
+本 Fork 基于 [sky130/MiWu](https://github.com/sky130/MiWu) v2.0.8，主要改进：
+
+This fork is based on [sky130/MiWu](https://github.com/sky130/MiWu) v2.0.8 with the following improvements:
+
+### Tiles 持久化修复 / Tiles Persistence Fix
+- **修复了设备重启后 Tiles/卡片配置丢失的问题** (Issues [#33](https://github.com/sky130/MiWu/issues/33), [#43](https://github.com/sky130/MiWu/issues/43), [#47](https://github.com/sky130/MiWu/issues/47))
+- 根因：`deviceListFlow` 是冷 Flow，仅在 UI 层收集；当 TileService 独立启动（如设备重启后）时，设备列表为空导致卡片显示 "hello tile"
+- 修复方式：在 `LocalRepositoryImpl` 初始化时主动收集 `deviceListFlow`，确保 TileService 启动时数据已从 Room 数据库加载
+- **Fixed tile configuration loss after device reboot** (Issues #33, #43, #47)
+- Root cause: `deviceListFlow` was a cold Flow only collected by UI ViewModels; when TileService started independently (e.g., after reboot), the device list was empty
+- Fix: eagerly collect `deviceListFlow` in `LocalRepositoryImpl.init{}` so data is loaded from Room database before TileService requests layout
+
+### 场景快捷面板 / Scene Quick Panel (New Tile)
+- **新增 SceneTile**：在表盘卡片中直接显示米家场景列表（最多 4 个）
+- 点击场景即可一键触发执行（离家/到家/睡觉等自动化场景）
+- **New SceneTile**: displays Mi Home scenes directly on the watch tile (up to 4)
+- One-tap to trigger scene execution (e.g., Leave Home, Arrive Home, Sleep)
+
+### 兼容性 / Compatibility
+- targetSdkVersion 35, compileSdkVersion 36
+- 已在 Galaxy Watch Ultra (Wear OS 5) 上测试目标
+- Targets Galaxy Watch Ultra (Wear OS 5 / API 34+)
+
+## 目前进度 / Progress
 
 - [x] `MiotAPI` 搭建
 - [x] 控件框架搭建
 - [x] 控制框架搭建
 - [x] 设备框架搭建
+- [x] Tiles 持久化修复
+- [x] 场景快捷面板 (SceneTile)
 - [ ] 开发文档编写
 - [ ] 软件性能优化
 

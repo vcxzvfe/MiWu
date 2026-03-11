@@ -33,6 +33,7 @@ import miwu.miot.model.miot.MiotHome
 import miwu.miot.model.miot.MiotScene
 import miwu.miot.model.miot.MiotUserInfo
 import miwu.miot.model.miot.MiotUserInfo.UserInfo
+import com.github.miwu.service.SceneTileService
 import miwu.miot.provider.MiotLoginProvider
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -183,7 +184,10 @@ class AppRepositoryImpl : KoinComponent, AppRepository {
                 ?: throw MiotClientException("MiotHomeClient is null")
         }.onFailure {
             logger.error("load scene failure, {}", it.stackTraceToString())
-        }.let { scenes.emit(it.toResultat()) }
+        }.let {
+            scenes.emit(it.toResultat())
+            SceneTileService.refresh()
+        }
     }
 
     @Throws(IllegalStateException::class)
