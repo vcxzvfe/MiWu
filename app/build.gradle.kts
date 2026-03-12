@@ -1,6 +1,7 @@
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import miwu.latestGitTag
 import miwu.getVersionInt
+import java.util.Properties
 
 // TODO https://github.com/InsertKoinIO/koin/issues/2357
 plugins {
@@ -13,6 +14,13 @@ plugins {
 }
 
 val tag = latestGitTag
+
+val localProperties = Properties().apply {
+    val localPropsFile = rootProject.file("local.properties")
+    if (localPropsFile.exists()) {
+        localPropsFile.inputStream().use { load(it) }
+    }
+}
 
 android {
     namespace = "com.github.miwu"
@@ -29,10 +37,10 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = file("${rootProject.projectDir}/miwu-release.keystore")
-            storePassword = "miwu2026"
-            keyAlias = "miwu-release"
-            keyPassword = "miwu2026"
+            storeFile = file(localProperties.getProperty("RELEASE_STORE_FILE", "${rootProject.projectDir}/miwu-release.keystore"))
+            storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD", "")
+            keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS", "")
+            keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD", "")
         }
     }
     buildTypes {

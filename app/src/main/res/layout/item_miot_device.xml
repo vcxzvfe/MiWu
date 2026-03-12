@@ -16,18 +16,21 @@
 
     <LinearLayout
         style="@style/DeviceCard.Background"
+        android:minHeight="56dp"
         android:alpha="@{item.isOnline ? 1.0f : 0.7f}"
         android:background="@{item.isOnline ? @drawable/bg_list_item : @drawable/bg_list_item_online}"
         tools:background="@drawable/bg_list_item">
 
         <ImageView
             style="@style/DeviceCard.Icon"
+            android:importantForAccessibility="no"
             android:src="@drawable/ic_miwu_placeholder"
             app:deviceMetadataHandler="@{handler}"
             app:deviceModel="@{item.model}" />
 
         <LinearLayout
             style="@style/Wear.Frame"
+            android:layout_marginStart="10dp"
             android:orientation="vertical">
 
             <TextView

@@ -39,12 +39,22 @@ class LoginViewModel(
     private val scope = CoroutineScope(loginJob)
     private val _qrcode = MutableStateFlow("")
     private val _event = MutableSharedFlow<Event>()
+    private val _qrExpired = MutableStateFlow(false)
+    private val _qrSecondsRemaining = MutableStateFlow(0)
+    private var pollRetryCount = 0
 
     val user = MutableStateFlow("")
     val password = MutableStateFlow("")
 
     val qrcode = _qrcode.asStateFlow()
     val event = _event.asSharedFlow()
+    val qrExpired = _qrExpired.asStateFlow()
+    val qrSecondsRemaining = _qrSecondsRemaining.asStateFlow()
+
+    companion object {
+        private const val QR_TIMEOUT_SECONDS = 300 // 5 minutes
+        private const val MAX_POLL_RETRIES = 60
+    }
 
     fun requestClassicLogin() {
         val user = user.value
@@ -65,31 +75,99 @@ class LoginViewModel(
     fun requestQRCodeLogin() {
         logger.info("Request for a login qrcode")
         loginJob.cancelChildren()
+        pollRetryCount = 0
+        _qrExpired.value = false
         scope.launch(Dispatchers.IO) {
             runCatching {
                 _qrcode.emit("")
+                logger.info("Generating QR code...")
                 val response = loginProvider
                     .generateLoginQrCode()
-                    .getOrThrow()
+                    .getOrElse { e ->
+                        logger.error("QR code generation failed: {}", e.message)
+                        throw e
+                    }
+                logger.info("QR code API response: code={}, desc={}", response.code, response.desc)
                 val qrcode = response.toQrCode()
-                    ?: error("generate login qrcode failure, response=${response}")
-                logger.info(
-                    "generate login qrcode successfully, qrcode data: {}, login url: {}",
-                    qrcode.data,
-                    qrcode.loginUrl
-                )
+                if (qrcode == null) {
+                    logger.error(
+                        "QR code data missing: loginUrl={}, lp={}",
+                        response.loginUrl,
+                        response.lp
+                    )
+                    error("generate login qrcode failure, response=${response}")
+                }
+                logger.info("QR code generated, polling login url: {}", qrcode.loginUrl)
+                _lastLoginUrl = qrcode.loginUrl
                 _qrcode.emit(qrcode.data)
+                startQrCountdown()
                 loginProvider
                     .loginByQrCode(qrcode.loginUrl)
                     .getOrThrow()
             }.onFailure { e ->
                 if (e is SocketTimeoutException || e is TimeoutException) {
-                    requestQRCodeLogin()
+                    pollRetryCount++
+                    if (pollRetryCount >= MAX_POLL_RETRIES) {
+                        logger.error("QR code login exceeded max retries ({})", MAX_POLL_RETRIES)
+                        _qrExpired.value = true
+                        _qrSecondsRemaining.value = 0
+                        loginFailure(IllegalStateException("QR code expired, tap to refresh"))
+                    } else {
+                        logger.info("QR code login poll timed out, retry {}/{}", pollRetryCount, MAX_POLL_RETRIES)
+                        pollQRCodeLogin()
+                    }
                 } else {
+                    logger.error("QR code login failed: {}", e.message)
                     loginFailure(e)
                 }
             }.onSuccess { user ->
                 loginSuccess(user)
+            }
+        }
+    }
+
+    private fun pollQRCodeLogin() {
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                val qrcodeData = _qrcode.value
+                if (qrcodeData.isEmpty()) return@launch
+                loginProvider
+                    .loginByQrCode(_lastLoginUrl ?: return@launch)
+                    .getOrThrow()
+            }.onFailure { e ->
+                if (e is SocketTimeoutException || e is TimeoutException) {
+                    pollRetryCount++
+                    if (pollRetryCount >= MAX_POLL_RETRIES) {
+                        logger.error("QR code login exceeded max retries ({})", MAX_POLL_RETRIES)
+                        _qrExpired.value = true
+                        _qrSecondsRemaining.value = 0
+                        loginFailure(IllegalStateException("QR code expired, tap to refresh"))
+                    } else {
+                        logger.info("QR code login poll timed out, retry {}/{}", pollRetryCount, MAX_POLL_RETRIES)
+                        pollQRCodeLogin()
+                    }
+                } else {
+                    logger.error("QR code login failed: {}", e.message)
+                    loginFailure(e)
+                }
+            }.onSuccess { user ->
+                loginSuccess(user)
+            }
+        }
+    }
+
+    private var _lastLoginUrl: String? = null
+
+    private fun startQrCountdown() {
+        _qrSecondsRemaining.value = QR_TIMEOUT_SECONDS
+        scope.launch(Dispatchers.Main) {
+            for (i in QR_TIMEOUT_SECONDS downTo 0) {
+                _qrSecondsRemaining.value = i
+                if (i == 0) {
+                    _qrExpired.value = true
+                    loginJob.cancelChildren()
+                }
+                delay(1.seconds)
             }
         }
     }
