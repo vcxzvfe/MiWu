@@ -94,10 +94,14 @@
     <string name="dev_mode">开发者模式</string>
     <string name="login_failure_toast">登录失败,原因可能为%s</string>
     <string name="login_qr_code">登录二维码</string>
+    <string name="qr_tap_to_refresh">二维码已过期，点击刷新</string>
     <string name="network_error_plz_check">网络错误, 请检查网络后再试</string>
     <string name="auth_expired_plz_login_again">登录过期, 请重新登录</string>
     <string name="add_to_tile">添加到卡片</string>
     <string name="favorite_device">收藏设备</string>
+    <string name="scene_detail_actions">包含 %1$d 个动作</string>
+    <string name="scene_detail_run">执行</string>
+    <string name="scene_detail_running">场景执行中…</string>
 
     <style name="device_offline">设备离线</style>
 </resources>

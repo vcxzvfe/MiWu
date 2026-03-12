@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Optimized for large round displays like Galaxy Watch Ultra (480x480) -->
+    <dimen name="device_activity_padding">26dp</dimen>
+    <dimen name="activity_padding_top">65dp</dimen>
+</resources>

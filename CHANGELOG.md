@@ -1,5 +1,37 @@
 # Changelog / 更新日志
 
+## v3.1.0 (2026-03-12)
+
+### Bug Fixes / 问题修复
+
+- **扫码登录修复**: 修复二维码无法显示的问题。`generateLoginQrCode()` 中 URL 参数拼接错误，查询参数被整体 URL 编码（包括 `=` 和换行符），导致请求失败。重构为逐参数编码
+- **QR Code Login Fix**: Fixed QR code not displaying. URL construction in `generateLoginQrCode()` was encoding the entire query string as a single blob (including `=` and newline characters) instead of properly encoding individual parameter values
+- **登录日志增强**: 在登录流程（二维码生成、轮询、账密登录）中添加详细日志，便于排查认证失败问题
+- **Login Logging**: Added comprehensive logging throughout login flow (QR generation, polling, classic login) to aid debugging
+
+### New Features / 新功能
+
+- **场景长按操作**: 实现 `SceneFragment` 中未完成的长按处理。长按场景条目弹出确认对话框，显示场景名称和动作数量，可直接执行场景
+- **Scene Long-Press**: Implemented the previously unfinished scene long-click handler. Long-pressing a scene shows a confirmation dialog with scene name, action count, and option to execute
+
+### UI Improvements / UI 优化
+
+- **Galaxy Watch Ultra 适配**: 新增 `values-sw220dp-round` 资源限定符，为大尺寸圆形屏幕（480x480）优化边距和间距
+- **Galaxy Watch Ultra Support**: Added `values-sw220dp-round` resource qualifier with optimized padding for large round displays
+- **触控区域优化**: 场景和设备列表项最小高度提升至 56dp，提升 Wear OS 上的点击精度
+- **Improved Touch Targets**: Minimum height of scene/device items increased to 56dp
+- **列表项样式优化**: 圆角从 15dp 增至 18dp，内边距和间距改善
+- **Modern List Items**: Corner radius increased from 15dp to 18dp, improved padding and spacing
+- **RecyclerView 滚动优化**: 设置 `clipToPadding=false`，列表内容可平滑滚动至标题栏下方
+- **登录页二维码布局**: 改善二维码图片在圆形屏幕上的居中和边距
+
+### Security / 安全
+
+- **签名凭据安全化**: 将发布签名信息（keystore 密码、别名、密钥密码）从 `build.gradle.kts` 硬编码移至 `local.properties`，该文件已被 `.gitignore` 排除
+- **Signing Credentials**: Moved release signing config from hardcoded `build.gradle.kts` to `local.properties` (excluded from version control)
+
+---
+
 ## v3.0.0 (2026-03-11) - Fork Release
 
 Based on [sky130/MiWu](https://github.com/sky130/MiWu) v2.0.8.

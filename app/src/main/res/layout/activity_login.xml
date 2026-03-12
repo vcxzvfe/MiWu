@@ -78,17 +78,37 @@
                         android:id="@+id/qrcode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="10dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginHorizontal="6dp"
                         android:adjustViewBounds="true"
                         android:contentDescription="@string/login_qr_code"
                         android:onClick="@{() -> viewModel.requestQRCodeLogin()}"
                         tools:src="@drawable/qr_code_stub" />
 
                     <TextView
+                        android:id="@+id/qr_countdown"
                         style="@style/Wear.Text"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="6dp"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:text="4:59"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        style="@style/Wear.Text"
+                        android:layout_marginTop="4dp"
                         android:lineSpacingExtra="-4dp"
                         android:text="@string/plz_user_mi_app_scan_qrcode" />
+
+                    <TextView
+                        android:id="@+id/qr_hint"
+                        style="@style/Wear.Text"
+                        android:layout_marginTop="6dp"
+                        android:textColor="@color/mi_green"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:text="@string/qr_tap_to_refresh"
+                        tools:visibility="visible" />
 
                 </LinearLayout>
 

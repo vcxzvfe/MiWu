@@ -33,13 +33,16 @@ import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.RequestBody
 import okhttp3.Response
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.coroutines.CoroutineContext
 
 class MiotLoginProviderImpl : MiotLoginProvider {
+    private val logger = LoggerFactory.getLogger("MiotLoginProvider")
     private val cookieJar = SimpleCookieJar()
     private val miotLoginClient = OkHttpClient {
         userAgent(MI_HOME_USER_AGENT)
@@ -48,6 +51,7 @@ class MiotLoginProviderImpl : MiotLoginProvider {
     }
 
     override suspend fun login(user: String, pwd: String): Result<MiotUser> = runCatching {
+        logger.info("Attempting classic login for user: {}", user)
         cookieJar.clear()
         val sidDetails = getLocation().getOrThrow()
         val pwdHash = pwd.md5()
@@ -69,6 +73,7 @@ class MiotLoginProviderImpl : MiotLoginProvider {
     }
 
     override suspend fun loginByQrCode(loginUrl: String): Result<MiotUser> = runCatching {
+        logger.info("Polling QR code login at: {}", loginUrl)
         cookieJar.clear()
         get<String>(loginUrl)
             .getOrThrow()
@@ -117,27 +122,32 @@ class MiotLoginProviderImpl : MiotLoginProvider {
         }
     }
 
-    // 为啥这里要在IO上下文执行？
     override suspend fun generateLoginQrCode(): Result<LoginQrCode> = runCatching {
-        val generateQrCode = """
-            ${QRCODE_GENERATE_URL}?
-            ${
-            """
-                _qrsize=240
-                qs=?sid=${MIOT_SID}
-                callback=https://sts.api.io.mi.com/sts
-                sid=${MIOT_SID}
-                serviceParam=
-                _locale=zh_CN
-                _dc=${System.currentTimeMillis()}
-            """.trimIndent().urlEncode()
+        val encode = { s: String -> URLEncoder.encode(s, "UTF-8") }
+        val params = listOf(
+            "_qrsize" to "240",
+            "qs" to "?sid=$MIOT_SID",
+            "callback" to "https://sts.api.io.mi.com/sts",
+            "sid" to MIOT_SID,
+            "serviceParam" to "",
+            "_locale" to "zh_CN",
+            "_dc" to System.currentTimeMillis().toString()
+        ).joinToString("&") { (k, v) -> "${encode(k)}=${encode(v)}" }
+        val generateQrCode = "$QRCODE_GENERATE_URL?$params"
+        logger.debug("Generating QR code login, url: {}", generateQrCode)
+        val rawResponse = get<String>(generateQrCode).getOrElse { e ->
+            logger.error("QR code generation HTTP request failed: {}", e.message)
+            throw e
         }
-        """.trimIndent()
-        get<String>(generateQrCode)
-            .getOrThrow()
-            .removePrefix()
-            .to<LoginQrCode>()
-            .getOrThrow()
+        logger.debug("QR code generation response: {}", rawResponse)
+        val qrCode = rawResponse.removePrefix().to<LoginQrCode>().getOrElse { e ->
+            logger.error("Failed to parse QR code response: {}", e.message)
+            throw e
+        }
+        if (qrCode.loginUrl == null || qrCode.lp == null) {
+            logger.error("QR code response missing loginUrl or lp: code={}, desc={}", qrCode.code, qrCode.desc)
+        }
+        qrCode
     }
 
     override suspend fun refreshServiceToken(miotUser: MiotUser): Result<MiotUser> = runCatching {
