@@ -1,11 +1,13 @@
 # Changelog / 更新日志
 
-## v3.1.0 (2026-03-12)
+## v3.1.0 (2026-03-16)
 
 ### Bug Fixes / 问题修复
 
-- **扫码登录修复**: 修复二维码无法显示的问题。`generateLoginQrCode()` 中 URL 参数拼接错误，查询参数被整体 URL 编码（包括 `=` 和换行符），导致请求失败。重构为逐参数编码
-- **QR Code Login Fix**: Fixed QR code not displaying. URL construction in `generateLoginQrCode()` was encoding the entire query string as a single blob (including `=` and newline characters) instead of properly encoding individual parameter values
+- **扫码登录修复**: 修复二维码扫码登录完全失效的问题。`LoginQrCode.toQrCode()` 中 `data` 和 `loginUrl` 字段互换，导致二维码显示的是轮询 URL 而非可扫描数据，同时轮询请求发送到错误地址。此外修复 `generateLoginQrCode()` 中 URL 参数编码问题
+- **QR Code Login Fix**: Fixed QR scan login being completely broken. `LoginQrCode.toQrCode()` had `data` and `loginUrl` fields swapped — the QR code displayed the polling URL instead of scannable data, and polling hit the wrong endpoint. Also fixed URL parameter encoding in `generateLoginQrCode()`
+- **miot-api-impl 依赖修复**: 添加缺失的 `slf4j-api` 依赖，修复 `MiotLoginProviderImpl` 中日志记录器的编译问题
+- **miot-api-impl dependency fix**: Added missing `slf4j-api` dependency for `MiotLoginProviderImpl` logger
 - **登录日志增强**: 在登录流程（二维码生成、轮询、账密登录）中添加详细日志，便于排查认证失败问题
 - **Login Logging**: Added comprehensive logging throughout login flow (QR generation, polling, classic login) to aid debugging
 

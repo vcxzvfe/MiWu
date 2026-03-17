@@ -18,7 +18,7 @@ data class LoginQrCode(
 ) {
     fun toQrCode(): QrCode? {
         if (loginUrl == null || lp == null) return null
-        return QrCode(data = loginUrl, loginUrl = lp)
+        return QrCode(data = lp, loginUrl = loginUrl)
     }
 
     @Serializable

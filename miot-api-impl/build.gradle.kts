@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.squareup.okhttp)
     implementation(libs.squareup.okio)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.slf4j.api)
 }
 
 miwuPublishing {
