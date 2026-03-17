@@ -65,7 +65,7 @@ class LoginActivity : ViewActivityX<Binding>(Binding::inflate) {
             .launchIn(lifecycleScope)
         viewModel.qrExpired
             .onEach { expired ->
-                binding.qrHint?.let { hint ->
+                binding.qrHint.let { hint ->
                     hint.text = if (expired) getString(R.string.qr_tap_to_refresh) else ""
                     hint.visibility = if (expired) android.view.View.VISIBLE else android.view.View.GONE
                 }
@@ -73,7 +73,7 @@ class LoginActivity : ViewActivityX<Binding>(Binding::inflate) {
             .launchIn(lifecycleScope)
         viewModel.qrSecondsRemaining
             .onEach { seconds ->
-                binding.qrCountdown?.let { countdown ->
+                binding.qrCountdown.let { countdown ->
                     if (seconds > 0) {
                         val min = seconds / 60
                         val sec = seconds % 60
